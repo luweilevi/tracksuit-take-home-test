@@ -1,0 +1,30 @@
+# Actions → Dev (manual) → Run workflow (choose branch).
+# Same GitHub environment "dev" as PR deploys.
+name: Dev (manual)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: dev
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      environment: dev
+      extra_tag: manual-${{ github.run_id }}
+
+  deploy:
+    needs: build
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      environment: dev
+      image: ${{ needs.build.outputs.image }}
