@@ -1,0 +1,34 @@
+# New / updated PRs → GitHub environment "dev".
+name: Dev
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  build:
+    needs: test
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      environment: dev
+      extra_tag: pr-${{ github.event.number }}
+
+  deploy:
+    needs: build
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      environment: dev
+      image: ${{ needs.build.outputs.image }}

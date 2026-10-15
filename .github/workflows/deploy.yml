@@ -1,0 +1,102 @@
+# Deploy SPA to S3/CloudFront and roll ECS to an image already in ECR.
+#
+# GitHub environment vars:
+#   AWS_ROLE_ARN, AWS_REGION
+#   SPA_BUCKET, CF_DISTRIBUTION_ID
+#   ECS_CLUSTER, ECS_SERVICE, ECS_TASK_FAMILY, ECS_CONTAINER_NAME
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment (dev or production)
+        type: string
+        required: true
+      image:
+        description: Full ECR image URI
+        type: string
+        required: true
+
+jobs:
+  client:
+    name: Deploy client
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: client-build
+          path: client/build
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: gha-deploy-client-${{ github.run_id }}
+
+      - name: Sync to S3
+        env:
+          SPA_BUCKET: ${{ vars.SPA_BUCKET }}
+        run: |
+          set -euo pipefail
+          aws s3 sync client/build "s3://${SPA_BUCKET}" \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable" \
+            --exclude index.html
+          aws s3 cp client/build/index.html "s3://${SPA_BUCKET}/index.html" \
+            --cache-control "public,max-age=60,must-revalidate"
+
+      - name: Invalidate CloudFront
+        env:
+          CF_DISTRIBUTION_ID: ${{ vars.CF_DISTRIBUTION_ID }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${CF_DISTRIBUTION_ID}" \
+            --paths / /index.html
+
+  server:
+    name: Deploy Server
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: gha-deploy-api-${{ github.run_id }}
+
+      - name: Fetch current task definition
+        env:
+          ECS_TASK_FAMILY: ${{ vars.ECS_TASK_FAMILY }}
+        run: |
+          set -euo pipefail
+          aws ecs describe-task-definition \
+            --task-definition "${ECS_TASK_FAMILY}" \
+            --query taskDefinition \
+            --output json \
+          | jq 'del(
+              .taskDefinitionArn, .revision, .status,
+              .requiresAttributes, .compatibilities,
+              .registeredAt, .registeredBy, .deregisteredAt
+            )' > task-def.json
+
+      - uses: aws-actions/amazon-ecs-render-task-definition@v1
+        id: render
+        with:
+          task-definition: task-def.json
+          container-name: ${{ vars.ECS_CONTAINER_NAME }}
+          image: ${{ inputs.image }}
+
+      - uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render.outputs.task-definition }}
+          service: ${{ vars.ECS_SERVICE }}
+          cluster: ${{ vars.ECS_CLUSTER }}
+          wait-for-service-stability: true
