@@ -15,10 +15,10 @@ over-thinking it!
 
 ## Background
 
-Imagine you are an SRE at a promising startup called Suit Tracker Inc. Here
-at Suit Tracker, we have a huge network of well-paid interns that hang out at
-malls and note down what people are wearing out there in the wild. We then get
-our data science team to tell us what it all means.
+Imagine you are an SRE at a promising startup called Suit Tracker Inc. Here at
+Suit Tracker, we have a huge network of well-paid interns that hang out at malls
+and note down what people are wearing out there in the wild. We then get our
+data science team to tell us what it all means.
 
 Our office fax is ringing off the hook with potential customers wanting to sign
 up to receive our fashion insights.
@@ -77,10 +77,12 @@ had a chance to flesh out the monitoring and observability for this application.
 ### Implementation notes
 
 - The backend app is an HTTP server
-  - the build goes to `server/build/server`; it's an x86_64 ELF binary by default
+  - the build goes to `server/build/server`; it's an x86_64 ELF binary by
+    default
   - at runtime, it has a health endpoint at `GET /_health`
   - Deno has a fine-grained security model; you might need to run with extra
-    flags to avoid interactive permissions prompts ([documentation](https://docs.deno.com/runtime/fundamentals/security/))
+    flags to avoid interactive permissions prompts
+    ([documentation](https://docs.deno.com/runtime/fundamentals/security/))
   - the application uses SQLite for data storage.
 
 - The frontend is bundled into static assets

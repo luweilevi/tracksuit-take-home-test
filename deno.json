@@ -15,6 +15,9 @@
     "dev:client": "deno task --cwd=client dev",
     "test:client": "deno task --cwd=client test"
   },
+  "lint": {
+    "exclude": ["infra"]
+  },
   "compilerOptions": {
     "strict": true,
     "lib": ["deno.ns", "dom", "dom.iterable", "dom.asynciterable"],
