@@ -5,14 +5,20 @@ on:
 
 jobs:
   test:
-    name: Typecheck and tests
+    name: Lint, typecheck, and tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: denoland/setup-deno@v2
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: "2.4.2"
+
+      - name: Lint
+        run: deno lint
+
+      - name: Format
+        run: deno fmt --check
 
       - name: Typecheck
         run: deno check .

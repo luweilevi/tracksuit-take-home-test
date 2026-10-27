@@ -1,13 +1,14 @@
 # SRE Take-Home Test (TypeScript)
 
-This is a template for a take-home test. See the [Instructions][Instructions] for details
-on the activity.
+This is a template for a take-home test. See the [Instructions][Instructions]
+for details on the activity.
 
 **Set Up Your Repository**
 
 1. On the top right corner of this page, click the "Use this template" button
 2. Select "Create Your Own Repository" from the dropdown
-3. Give the repository a name under your Github account, and click "Create a new repository"
+3. Give the repository a name under your Github account, and click "Create a new
+   repository"
 4. Follow the below instructions to complete the exercise
 
 **Submit Your Work**
@@ -24,8 +25,8 @@ user as a collaborator, and share the repo link with the talent manager.
 ## Setup
 
 Install Deno 2.4 using your preferred method--typically this would be your
-system's package manager. See [Deno's installation instructions][DenoInstall] to find the
-command that's right for you.
+system's package manager. See [Deno's installation instructions][DenoInstall] to
+find the command that's right for you.
 
 <!-- deno-fmt-ignore-start -->
 
@@ -54,7 +55,9 @@ deno task build
 
 This is set up to output an x86_64 Linux ELF at `server/build/server`. You can
 override the target architecture if necessary by setting the `ARCH` environment
-variable; [see the docs here](https://docs.deno.com/runtime/reference/cli/compile/#supported-targets) for possible values.
+variable;
+[see the docs here](https://docs.deno.com/runtime/reference/cli/compile/#supported-targets)
+for possible values.
 
 ### Building the frontend
 
